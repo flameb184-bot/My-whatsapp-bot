@@ -1,6 +1,6 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
-const express = require('express');
-const qrcode = require('qrcode-terminal');
+import { Client, LocalAuth } from 'whatsapp-web.js';
+import express from 'express';
+import qrcode from 'qrcode-terminal';
 
 const app = express();
 const PORT = process.env.PORT || 10000;
