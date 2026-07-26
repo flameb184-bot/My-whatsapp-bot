@@ -1,39 +1,51 @@
-import pkg from 'whatsapp-web.js';
-import express from 'express';
-import qrcode from 'qrcode-terminal';
-import chromium from '@sparticuz/chromium';
-import puppeteer from 'puppeteer-core';
-
-const { Client, LocalAuth } = pkg;
+const { Client, LocalAuth } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
+const express = require('express');
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 
-async function startBot() {
-    const executablePath = await chromium.executablePath();
-    
-    const client = new Client({
-        authStrategy: new LocalAuth(),
-        puppeteer: {
-            executablePath: executablePath,
-            args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-            headless: chromium.headless,
-        }
-    });
-
-    client.on('qr', (qr) => {
-        console.log('QR RECEIVED');
-        qrcode.generate(qr, { small: true });
-    });
-
-    client.on('ready', () => {
-        console.log('Client is ready!');
-    });
-
-    await client.initialize();
-}
-
-startBot();
-
+// This keeps Render from sleeping
 app.get('/', (req, res) => res.send('Bot is running'));
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// WhatsApp Client with Render fix
+const client = new Client({
+    authStrategy: new LocalAuth(),
+    puppeteer: {
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
+            '--disable-gpu'
+        ],
+        headless: true
+    }
+});
+
+// When QR is ready
+client.on('qr', (qr) => {
+    console.log('QR RECEIVED');
+    qrcode.generate(qr, { small: true });
+});
+
+// When client is ready
+client.on('ready', () => {
+    console.log('Client is ready!');
+});
+
+// When someone messages
+client.on('message', (msg) => {
+    if (msg.body === '!ping') {
+        msg.reply('pong');
+    }
+});
+
+client.initialize();
+
+// This keeps the bot process alive on Render
+process.stdin.resume();
