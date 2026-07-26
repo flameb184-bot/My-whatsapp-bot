@@ -1,6 +1,10 @@
 import { default as makeWASocket, DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
 import qrcode from 'qrcode-terminal';
 import express from 'express';
+import { mkdirSync, existsSync } from 'fs'; // <-- ADDED FOR SESSIONS FOLDER
+
+// Create sessions folder if it doesn't exist
+if (!existsSync('sessions')) mkdirSync('sessions');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,24 +27,7 @@ async function startBot() {
             console.log('Scan the QR above ^');
         }
         if (connection === 'close') {
-            const shouldReconnect = (lastDisconnect.error)?.output?.statusCode!== DisconnectReason.loggedOut;
+            const shouldReconnect = (lastDisconnect.error)?.output?.statusCode !== DisconnectReason.loggedOut;
             console.log('Connection closed. Reconnecting...', shouldReconnect);
             if (shouldReconnect) startBot();
-        } else if (connection === 'open') {
-            console.log('WhatsApp Bot Connected!');
-        }
-    });
-
-    sock.ev.on('creds.update', saveCreds);
-
-    sock.ev.on('messages.upsert', async (m) => {
-        const msg = m.messages[0];
-        if (!msg.message || msg.key.fromMe) return;
-        const text = msg.message.conversation || msg.message.extendedTextMessage?.text;
-        if (text === '.ping') {
-            await sock.sendMessage(msg.key.remoteJid, { text: 'pong 🏓' });
-        }
-    });
-}
-
-startBot();
+        } else if
