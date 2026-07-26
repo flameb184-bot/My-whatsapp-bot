@@ -33,7 +33,7 @@ async function startBot() {
   sock.ev.on('connection.update', (update) => {
     const { connection, lastDisconnect } = update;
     if (connection === 'close') {
-      const shouldReconnect = (lastDisconnect.error)?.output?.statusCode!== DisconnectReason.loggedOut;
+   const shouldReconnect = (lastDisconnect.error)?.output?.statusCode!== DisconnectReason.loggedOut;   
       console.log('Connection closed. Reconnecting...', shouldReconnect);
       if (shouldReconnect) startBot();
     } else if (connection === 'open') {
