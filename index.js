@@ -1,32 +1,39 @@
 import pkg from 'whatsapp-web.js';
 import express from 'express';
 import qrcode from 'qrcode-terminal';
+import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer-core';
 
 const { Client, LocalAuth } = pkg;
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-const client = new Client({
-    authStrategy: new LocalAuth(),
-    puppeteer: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-    }
-});
+async function startBot() {
+    const executablePath = await chromium.executablePath();
+    
+    const client = new Client({
+        authStrategy: new LocalAuth(),
+        puppeteer: {
+            executablePath: executablePath,
+            args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+            headless: chromium.headless,
+        }
+    });
 
-client.on('qr', (qr) => {
-    console.log('QR RECEIVED');
-    qrcode.generate(qr, { small: true });
-});
+    client.on('qr', (qr) => {
+        console.log('QR RECEIVED');
+        qrcode.generate(qr, { small: true });
+    });
 
-client.on('ready', () => {
-    console.log('Client is ready!');
-});
+    client.on('ready', () => {
+        console.log('Client is ready!');
+    });
 
-client.on('authenticated', () => {
-    console.log('Client authenticated');
-});
+    await client.initialize();
+}
 
-client.initialize();
+startBot();
 
+app.get('/', (req, res) => res.send('Bot is running'));
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
