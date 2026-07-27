@@ -1,32 +1,39 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
 const express = require('express');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 app.get('/', (req, res) => res.send('Bot is running'));
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-const client = new Client({
-    authStrategy: new LocalAuth(),
-    puppeteer: {
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage'
-        ],
-        headless: true
-    }
-});
+async function startBot() {
+    const { state, saveCreds } = await useMultiFileAuthState('auth_info');
 
-client.on('qr', (qr) => {
-    console.log('QR RECEIVED');
-    qrcode.generate(qr, { small: true });
-});
+    const sock = makeWASocket({
+        auth: state,
+        printQRInTerminal: true
+    });
 
-client.on('ready', () => {
-    console.log('Client is ready!');
-});
+    sock.ev.on('connection.update', (update) => {
+        const { connection, qr } = update;
+        if (qr) {
+            console.log('QR RECEIVED - SCAN THIS:');
+            qrcode.generate(qr, { small: true });
+        }
+        if (connection === 'open') {
+            console.log('Client is ready!');
+        }
+    });
 
-client.initialize();
+    sock.ev.on('creds.update', saveCreds);
+
+    sock.ev.on('messages.upsert', (m) => {
+        const msg = m.messages[0];
+        if (!msg.key.fromMe && msg.message?.conversation === '!ping') {
+            sock.sendMessage(msg.key.remoteJid, { text: 'pong' });
+        }
+    });
+}
+
+startBot();
