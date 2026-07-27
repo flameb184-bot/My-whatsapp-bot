@@ -5,14 +5,13 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Keep Render awake
 app.get('/', (req, res) => res.send('Bot is running'));
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-// WhatsApp Client with Render RAM fix
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
+        executablePath: '/usr/bin/chromium-browser',
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -27,7 +26,6 @@ const client = new Client({
     }
 });
 
-// Show QR in logs
 client.on('qr', (qr) => {
     console.log('QR RECEIVED');
     qrcode.generate(qr, { small: true });
@@ -44,4 +42,4 @@ client.on('message', (msg) => {
 });
 
 client.initialize();
-process.stdin.resume(); // Keep process alive
+process.stdin.resume();
