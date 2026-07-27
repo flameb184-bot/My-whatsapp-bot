@@ -4,34 +4,33 @@ import express from 'express';
 
 const app = express();
 const PORT = process.env.PORT || 10000;
-app.get('/', (req, res) => res.send('Bot is running - Go to Logs to see QR'));
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.get('/', (req, res) => res.send('Bot is running. Check Logs for QR'));
+app.listen(PORT);
 
+let sock;
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState('auth_info');
 
-    const sock = makeWASocket({
+    sock = makeWASocket({
         auth: state,
-        browser: ['Render Bot', 'Chrome', '1.0.0']
+        browser: ['Ubuntu', 'Chrome', '20.0.04'],
+        qrTimeout: 60000 // give 60s to scan
     });
 
     sock.ev.on('connection.update', (update) => {
-        const { connection, lastDisconnect, qr } = update;
+        const { connection, qr } = update;
         
         if (qr) {
-            console.log('\n\n🔥 SCAN THIS QR WITH WHATSAPP NOW 🔥🔥');
-            console.log('You have 20 seconds\n');
-            qrcode.generate(qr, { small: true });
-            console.log('\n🔥 SCAN IT NOW 🔥🔥🔥\n\n');
+            console.log('\n\n');
+            console.log('━━━━━━━━');
+            console.log(' SCAN THIS QR NOW - 60 SECONDS ');
+            console.log('━━━━━━━━');
+            qrcode.generate(qr, { small: false }); // bigger QR
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━\n\n\n');
         }
         
         if (connection === 'open') {
-            console.log('✅ SUCCESS! BOT IS LINKED AND ONLINE');
-        }
-        
-        if (connection === 'close') {
-            console.log('❌ Connection closed. Will retry in 5 seconds...');
-            setTimeout(startBot, 5000);
+            console.log('✅ BOT IS ONLINE!');
         }
     });
 
@@ -39,10 +38,11 @@ async function startBot() {
 
     sock.ev.on('messages.upsert', async (m) => {
         const msg = m.messages[0];
-        if (!msg.key.fromMe && msg.message?.conversation === '!ping') {
-            await sock.sendMessage(msg.key.remoteJid, { text: 'pong 🏓 Bot is working!' });
+        if (msg?.message?.conversation?.toLowerCase() === '!ping') {
+            await sock.sendMessage(msg.key.remoteJid, { text: 'pong 🏓' });
         }
     });
 }
 
-startBot();
+// Wait 3 seconds before starting so logs are ready
+setTimeout(startBot, 3000);
