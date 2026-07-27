@@ -1,37 +1,40 @@
 import makeWASocket, { useMultiFileAuthState, DisconnectReason } from '@whiskeysockets/baileys';
-import qrcode from 'qrcode-terminal';
 import express from 'express';
+import readline from 'readline';
 
 const app = express();
 const PORT = process.env.PORT || 10000;
-app.get('/', (req, res) => res.send('Bot is running. Check Logs for QR'));
+app.get('/', (req, res) => res.send('Bot is running'));
 app.listen(PORT);
 
-let sock;
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const question = (text) => new Promise((resolve) => rl.question(text, resolve));
+
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState('auth_info');
 
-    sock = makeWASocket({
+    const sock = makeWASocket({
         auth: state,
-        browser: ['Ubuntu', 'Chrome', '20.0.04'],
-        qrTimeout: 60000 // give 60s to scan
+        browser: ['Chrome', 'Windows', '1.0.0']
     });
 
+    if (!sock.authState.creds.registered) {
+        const phoneNumber = await question('\n\nENTER YOUR WHATSAPP NUMBER WITH COUNTRY CODE: \nExample: 254712345678\n> ');
+        setTimeout(async () => {
+            let code = await sock.requestPairingCode(phoneNumber.trim());
+            code = code?.match(/.{1,4}/g)?.join('-') || code;
+            console.log('\n\n🔥🔥 YOUR PAIRING CODE: ' + code + ' 🔥🔥');
+            console.log('Go to WhatsApp > Linked Devices > Link with phone number\n\n');
+        }, 3000);
+    }
+
     sock.ev.on('connection.update', (update) => {
-        const { connection, qr } = update;
-        
-        if (qr) {
-            console.log('\n\n');
-            console.log('━━━━━━━━');
-            console.log(' SCAN THIS QR NOW - 60 SECONDS ');
-            console.log('━━━━━━━━');
-            qrcode.generate(qr, { small: false }); // bigger QR
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━\n\n\n');
-        }
-        
+        const { connection } = update;
         if (connection === 'open') {
             console.log('✅ BOT IS ONLINE!');
+            rl.close();
         }
+        if (connection === 'close') setTimeout(startBot, 5000);
     });
 
     sock.ev.on('creds.update', saveCreds);
@@ -44,5 +47,4 @@ async function startBot() {
     });
 }
 
-// Wait 3 seconds before starting so logs are ready
-setTimeout(startBot, 3000);
+startBot();
