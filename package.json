@@ -1,13 +1,17 @@
 {
   "name": "my-whatsapp-bot",
   "version": "1.0.0",
+  "description": "",
   "main": "index.cjs",
   "scripts": {
-    "start": "node index.cjs",
-    "postinstall": "npx puppeteer browsers install chrome"
+    "start": "node index.cjs"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "express": "^4.19.2",
+    "puppeteer": "^21.7.0",
     "qrcode-terminal": "^0.12.0",
     "whatsapp-web.js": "^1.23.0"
   }
