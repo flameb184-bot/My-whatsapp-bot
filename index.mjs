@@ -1,6 +1,7 @@
-const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys');
-const qrcode = require('qrcode-terminal');
-const express = require('express');
+import makeWASocket, { useMultiFileAuthState } from '@whiskeysockets/baileys';
+import qrcode from 'qrcode-terminal';
+import express from 'express';
+import boom from '@hapi/boom';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
