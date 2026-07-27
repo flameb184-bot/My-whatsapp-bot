@@ -1,10 +1,9 @@
 import makeWASocket, { useMultiFileAuthState } from '@whiskeysockets/baileys';
 import qrcode from 'qrcode-terminal';
 import express from 'express';
-import boom from '@hapi/boom';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.get('/', (req, res) => res.send('Bot is running'));
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
@@ -12,18 +11,22 @@ async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState('auth_info');
 
     const sock = makeWASocket({
-        auth: state,
-        printQRInTerminal: true
+        auth: state
+        // REMOVED printQRInTerminal here
     });
 
     sock.ev.on('connection.update', (update) => {
         const { connection, qr } = update;
         if (qr) {
-            console.log('QR RECEIVED - SCAN THIS:');
-            qrcode.generate(qr, { small: true });
+            console.log('QR RECEIVED - SCAN THIS NOW:');
+            qrcode.generate(qr, { small: true }); // THIS prints it
         }
         if (connection === 'open') {
             console.log('Client is ready!');
+        }
+        if (connection === 'close') {
+            console.log('Connection closed, restarting...');
+            startBot();
         }
     });
 
