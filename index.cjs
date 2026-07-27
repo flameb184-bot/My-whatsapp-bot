@@ -11,17 +11,12 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome',
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-accelerated-2d-canvas',
-            '--no-first-run',
-            '--no-zygote',
-            '--disable-gpu'
+            '--disable-dev-shm-usage'
         ],
-        headless: 'new'
+        headless: true
     }
 });
 
@@ -34,11 +29,4 @@ client.on('ready', () => {
     console.log('Client is ready!');
 });
 
-client.on('message', (msg) => {
-    if (msg.body === '!ping') {
-        msg.reply('pong');
-    }
-});
-
 client.initialize();
-process.stdin.resume();
