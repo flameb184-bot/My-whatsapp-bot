@@ -1,9 +1,11 @@
 {
   "name": "my-whatsapp-bot",
   "version": "1.0.0",
-  "main": "index.cjs",
+  "description": "WhatsApp bot using Baileys",
+  "main": "index.mjs",
+  "type": "module",
   "scripts": {
-    "start": "node index.cjs"
+    "start": "node index.mjs"
   },
   "dependencies": {
     "express": "^4.19.2",
