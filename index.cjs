@@ -11,7 +11,6 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
-        executablePath: '/usr/bin/chromium-browser',
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
