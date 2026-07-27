@@ -1,4 +1,4 @@
-import makeWASocket, { useMultiFileAuthState } from '@whiskeysockets/baileys';
+import makeWASocket, { useMultiFileAuthState, DisconnectReason } from '@whiskeysockets/baileys';
 import qrcode from 'qrcode-terminal';
 import express from 'express';
 
@@ -11,19 +11,23 @@ async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState('auth_info');
 
     const sock = makeWASocket({
-        auth: state
-        // REMOVED printQRInTerminal here
+        auth: state,
+        browser: ['Render Bot', 'Chrome', '1.0.0'],
+        printQRInTerminal: false // we print manually
     });
 
     sock.ev.on('connection.update', (update) => {
-        const { connection, qr } = update;
+        const { connection, lastDisconnect, qr } = update;
+        
         if (qr) {
-            console.log('QR RECEIVED - SCAN THIS NOW:');
-            qrcode.generate(qr, { small: true }); // THIS prints it
+            console.log('\n>>>>>>>>>> SCAN QR NOW <<<<<<<<<<\n');
+            qrcode.generate(qr, { small: true });
         }
+        
         if (connection === 'open') {
-            console.log('Client is ready!');
+            console.log('✅ BOT IS ONLINE!');
         }
+        
         if (connection === 'close') {
             console.log('Connection closed, restarting...');
             startBot();
@@ -32,10 +36,10 @@ async function startBot() {
 
     sock.ev.on('creds.update', saveCreds);
 
-    sock.ev.on('messages.upsert', (m) => {
+    sock.ev.on('messages.upsert', async (m) => {
         const msg = m.messages[0];
         if (!msg.key.fromMe && msg.message?.conversation === '!ping') {
-            sock.sendMessage(msg.key.remoteJid, { text: 'pong' });
+            await sock.sendMessage(msg.key.remoteJid, { text: 'pong 🏓' });
         }
     });
 }
