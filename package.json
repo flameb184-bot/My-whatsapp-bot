@@ -1,13 +1,18 @@
 {
   "name": "whatsapp-bot",
   "version": "1.0.0",
+  "description": "WhatsApp Bot with Baileys",
   "main": "index.mjs",
   "type": "module",
   "scripts": {
     "start": "node index.mjs"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.14",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "pino": "^8.19.0"
   }
 }
