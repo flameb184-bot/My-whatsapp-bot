@@ -1,0 +1,6 @@
+    import fs from 'fs';
+    // DELETE OLD SESSION ON START
+    if (fs.existsSync('./auth_info')) {
+        fs.rmSync('./auth_info', { recursive: true, force: true });
+        console.log('Deleted old session. Will request new pairing code.');
+    }
