@@ -8,7 +8,7 @@ app.listen(PORT);
 
 // PUT YOUR NUMBER HERE
 // Format: CountryCode + Number, NO + and NO spaces
-const PHONE_NUMBER ='254110984858;
+const PHONE_NUMBER ='254110985858;
 
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState('auth_info');
